@@ -48,11 +48,24 @@ class statsstock extends Module
         $this->ps_versions_compliancy = ['min' => '1.7.6.0', 'max' => _PS_VERSION_];
     }
 
+    /**
+     * Install the module and register the stats dashboard hook.
+     *
+     * @return bool True on successful installation, false otherwise
+     */
     public function install()
     {
         return parent::install() && $this->registerHook('displayAdminStatsModules');
     }
 
+    /**
+     * Render the stock level report on the admin statistics dashboard.
+     *
+     * Presents a sortable grid of products with current stock levels, colour-coded by threshold.
+     * Supports category filtering and CSV export.
+     *
+     * @return string HTML output for the statistics widget
+     */
     public function hookDisplayAdminStatsModules()
     {
         if (Tools::isSubmit('submitCategory')) {
