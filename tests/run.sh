@@ -3,10 +3,24 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-sudo apt-get update
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io mariadb-server apparmor curl gnupg ca-certificates
+USE_SUDO_DOCKER="${USE_SUDO_DOCKER:-0}"
+if [ "$USE_SUDO_DOCKER" = "1" ]; then
+  SUDO_APT=(sudo apt-get)
+  SUDO_DOCKER=(sudo docker)
+else
+  SUDO_APT=(apt-get)
+  SUDO_DOCKER=(docker)
+fi
 
-sudo docker pull php@sha256:6ce95208609dc66df163ab936c970b3b34cd901b85c747102c5999f08ade9143
+MARIADB_SERVER_PKG='mariadb-server=1:10.11.14-0ubuntu0.24.04.1'
+MARIADB_CLIENT_PKG='mariadb-client=1:10.11.14-0ubuntu0.24.04.1'
+MARIADB_VERSION='10.11.14-MariaDB-0ubuntu0.24.04.1'
+
+"${SUDO_APT[@]}" update
+DEBIAN_FRONTEND=noninteractive "${SUDO_APT[@]}" install -y docker.io apparmor curl gnupg ca-certificates \
+  "$MARIADB_SERVER_PKG" "$MARIADB_CLIENT_PKG"
+
+"${SUDO_DOCKER[@]}" pull php@sha256:6ce95208609dc66df163ab936c970b3b34cd901b85c747102c5999f08ade9143
 
 RUNTIME=$(mktemp -d)
 GNUPGHOME=$(mktemp -d)
@@ -42,15 +56,21 @@ else
 fi
 
 mysqladmin --protocol=socket --socket="$RUNTIME/mysqld.sock" --wait=30 ping
+ACTUAL_VERSION="$(mysql --protocol=socket --socket="$RUNTIME/mysqld.sock" -N -e 'SELECT VERSION();')"
+if [ "$ACTUAL_VERSION" != "$MARIADB_VERSION" ]; then
+  echo "Unexpected MariaDB VERSION(): got '$ACTUAL_VERSION', want '$MARIADB_VERSION'" >&2
+  exit 1
+fi
+
 mysql --protocol=socket --socket="$RUNTIME/mysqld.sock" \
   -e "CREATE DATABASE IF NOT EXISTS statsstock CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-sudo docker build -t statsstock-php56:local -f tests/docker/php56.Dockerfile .
+"${SUDO_DOCKER[@]}" build -t statsstock-php56:local -f tests/docker/php56.Dockerfile .
 
 export STATSSTOCK_RUNTIME="$RUNTIME"
 export STATSSTOCK_PHPUNIT_PHAR="$RUNTIME/phpunit-4.8.36.phar"
 
-sudo docker run --rm --network none \
+"${SUDO_DOCKER[@]}" run --rm --network none \
   -v "$PWD":/src -v "$RUNTIME":/runtime -w /src \
   -e STATSSTOCK_MYSQL_SOCKET=/runtime/mysqld.sock \
   -e STATSSTOCK_RUNTIME=/runtime \

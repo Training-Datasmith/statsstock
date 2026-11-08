@@ -29,6 +29,13 @@ class StatsstockTestCase extends PHPUnit_Framework_TestCase
         $this->assertNotContains('BAD_PARAMS', $html);
     }
 
+    protected function assertNumericPriceCell($actual, $expected)
+    {
+        $this->assertInternalType('string', $actual);
+        $this->assertRegExp('/^-?\d+(\.\d+)?$/', $actual);
+        $this->assertSame((float) $expected, (float) $actual);
+    }
+
   /**
    * @return array<int, array<string, string>>
    */

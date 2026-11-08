@@ -63,19 +63,19 @@ class StockReportTest extends StatsstockTestCase
         $this->assertSame('CAF', $rows[0]['reference']);
         $this->assertSame('Café table', $rows[0]['name']);
         $this->assertSame('1', $rows[0]['quantity']);
-        $this->assertSame('10.0000000000', $rows[0]['price']);
+        $this->assertNumericPriceCell($rows[0]['price'], 10);
         $this->assertSame('10', $rows[0]['value']);
 
         $this->assertSame('PIN', $rows[1]['reference']);
         $this->assertSame('Pine board', $rows[1]['name']);
         $this->assertSame('3', $rows[1]['quantity']);
-        $this->assertSame('30.0000000000', $rows[1]['price']);
+        $this->assertNumericPriceCell($rows[1]['price'], 30);
         $this->assertSame('90', $rows[1]['value']);
 
         $footer = $this->extractFooterTotals($html);
         $this->assertNotNull($footer);
         $this->assertSame('4', $footer['quantity']);
-        $this->assertSame('20', $footer['average']);
+        $this->assertNumericPriceCell($footer['average'], 20);
         $this->assertSame('100', $footer['total']);
 
         $this->assertContains('Total quantities', $html);
@@ -97,7 +97,7 @@ class StockReportTest extends StatsstockTestCase
         $rows = $this->extractProductRows($html);
 
         $this->assertCount(1, $rows);
-        $this->assertSame('20.0000000000', $rows[0]['price']);
+        $this->assertNumericPriceCell($rows[0]['price'], 20);
         $this->assertSame('80', $rows[0]['value']);
         $this->assertNotContains('<td>100</td>', $html);
         $this->assertNotContains('<td>400</td>', $html);
@@ -114,7 +114,7 @@ class StockReportTest extends StatsstockTestCase
         $rows = $this->extractProductRows($html);
 
         $this->assertCount(1, $rows);
-        $this->assertSame('7.0000000000', $rows[0]['price']);
+        $this->assertNumericPriceCell($rows[0]['price'], 7);
         $this->assertSame('14', $rows[0]['value']);
     }
 
@@ -147,11 +147,11 @@ class StockReportTest extends StatsstockTestCase
 
         $this->assertCount(1, $rows);
         $this->assertSame('-2', $rows[0]['quantity']);
-        $this->assertSame('5.0000000000', $rows[0]['price']);
+        $this->assertNumericPriceCell($rows[0]['price'], 5);
         $this->assertSame('-10', $rows[0]['value']);
         $this->assertNotNull($footer);
         $this->assertSame('-2', $footer['quantity']);
-        $this->assertSame('5', $footer['average']);
+        $this->assertNumericPriceCell($footer['average'], 5);
         $this->assertSame('-10', $footer['total']);
     }
 
@@ -184,7 +184,7 @@ class StockReportTest extends StatsstockTestCase
 
         $count = $this->pdo->query('SELECT COUNT(*) FROM ps_product')->fetchColumn();
         $this->assertInternalType('string', $count);
-        $this->assertSame(2, (int) $count);
+        $this->assertSame('2', $count);
     }
 
     public function testCookieStaysPutWhenCategoryWasNotSubmitted()

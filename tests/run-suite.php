@@ -21,6 +21,29 @@ $expectedFiles = array(
 );
 $expectedTestCount = 27;
 
+$expectedAbsolute = array();
+foreach ($expectedFiles as $relative) {
+    $expectedAbsolute[] = $root . '/' . $relative;
+}
+
+$discovered = glob($root . '/tests/*Test.php');
+if ($discovered === false) {
+    fwrite(STDERR, 'Failed to scan tests/*Test.php' . PHP_EOL);
+    exit(1);
+}
+
+sort($discovered);
+sort($expectedAbsolute);
+
+if ($discovered !== $expectedAbsolute) {
+    fwrite(STDERR, 'Test file list drift: expected exactly ' . count($expectedFiles) . ' files in tests/' . PHP_EOL);
+    fwrite(STDERR, '  expected: ' . implode(', ', $expectedFiles) . PHP_EOL);
+    fwrite(STDERR, '  on disk: ' . implode(', ', array_map(function ($path) use ($root) {
+        return substr($path, strlen($root) + 1);
+    }, $discovered)) . PHP_EOL);
+    exit(1);
+}
+
 $actualTestCount = 0;
 
 foreach ($expectedFiles as $relative) {
