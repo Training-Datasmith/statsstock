@@ -164,9 +164,9 @@ class statsstock extends Module
 					</tr>
 				</tfoot>
 			</table>
-			<i class="icon-asterisk"></i> ' . $this->trans('This section corresponds to the default wholesale price according to the default supplier for the product. An average price is used when the product has attributes.', [], 'Modules.Statsstock.Admin');
-
-            return $this->html;
+            <i class="icon-asterisk"></i> ' . $this->trans('This section corresponds to the default wholesale price according to the default supplier for the product. An average price is used when the product has attributes.', [], 'Modules.Statsstock.Admin');
         }
+
+        return $this->html;
     }
 }
